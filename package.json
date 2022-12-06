@@ -4,7 +4,7 @@
   "description": "Clic Signer",
   "main": "index.js",
   "scripts": {
-    "test": "node index.js"
+    "test": "node src/index.js"
   },
   "type": "module",
   "author": "Emmanuel Mbonye",
