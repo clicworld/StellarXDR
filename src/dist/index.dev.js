@@ -29,7 +29,7 @@ var server = new _stellarSdk["default"].Server('https://horizon.stellar.org');
 app.post('/', initPayment);
 
 function initPayment(req, res) {
-  var _req$body, request_id, wallet_id, amount, currency, pbKey, signatureEnvelopeResult, calculatedSignature, payLoad, initPaymentResult;
+  var _req$body, request_id, wallet_id, amount, currency, pbKey, signatureEnvelopeResult, calculatedSignature, payLoad, initPaymentResult, response;
 
   return regeneratorRuntime.async(function initPayment$(_context) {
     while (1) {
@@ -64,7 +64,6 @@ function initPayment(req, res) {
         case 11:
           signatureEnvelopeResult = _context.sent;
           calculatedSignature = generateSignature(req.body);
-          console.log("signatureEnvelopeResult", signatureEnvelopeResult);
           payLoad = {
             "paymode": "bank",
             "request_id": request_id,
@@ -74,27 +73,41 @@ function initPayment(req, res) {
             "envelope": signatureEnvelopeResult,
             "signature": calculatedSignature
           };
-          _context.next = 17;
+          _context.next = 16;
           return regeneratorRuntime.awrap(sendPostData("wallet/depositRequest", payLoad));
 
-        case 17:
+        case 16:
           initPaymentResult = _context.sent;
-          return _context.abrupt("return", res.status(200).json(initPaymentResult));
+          response = JSON.parse(initPaymentResult);
 
-        case 21:
-          _context.prev = 21;
+          if (!(response.status == 100)) {
+            _context.next = 22;
+            break;
+          }
+
+          return _context.abrupt("return", res.status(200).send(initPaymentResult));
+
+        case 22:
+          return _context.abrupt("return", res.status(403).send(initPaymentResult));
+
+        case 23:
+          _context.next = 29;
+          break;
+
+        case 25:
+          _context.prev = 25;
           _context.t0 = _context["catch"](2);
           console.error('Error processing payment:', _context.t0);
           return _context.abrupt("return", res.status(500).json({
             error: 'Internal Server Error'
           }));
 
-        case 25:
+        case 29:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[2, 21]]);
+  }, null, null, [[2, 25]]);
 }
 
 function getClicAccount(wallet_id) {
@@ -136,14 +149,17 @@ function getClicAccount(wallet_id) {
 
 function generateSignature(requestBody) {
   var request_id = requestBody.request_id,
+      paymode = requestBody.paymode,
       wallet_id = requestBody.wallet_id,
       amount = requestBody.amount,
       currency = requestBody.currency;
-  var dataToSign = request_id + wallet_id + amount + currency + API_SECRET;
+  var dataToSign = paymode + request_id + wallet_id + wallet_id + amount + currency + API_SECRET;
 
-  var sha256Hash = _crypto["default"].createHash('sha256').update(dataToSign).digest();
+  var sha256Hash = _crypto["default"].createHash('sha256').update(dataToSign).digest('hex');
 
-  return sha256Hash.toString('base64');
+  var signature = Buffer.from(sha256Hash).toString('base64');
+  console.log("sha256Hash", signature);
+  return signature;
 }
 
 function generateSignatureEnvelope(amount, assetCode, destination, request_id) {

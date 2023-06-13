@@ -31,13 +31,12 @@ async function initPayment(req, res) {
             return res.status(500).json({ error: 'Account not found' });
         }
 
-        if(request_id.length>28){
+        if (request_id.length > 28) {
             request_id = "abc_clic"
         }
 
         const signatureEnvelopeResult = await generateSignatureEnvelope(amount, currency, pbKey, request_id);
         const calculatedSignature = generateSignature(req.body);
-        console.log("signatureEnvelopeResult", signatureEnvelopeResult)
 
         const payLoad = {
             "paymode": "bank",
@@ -50,7 +49,12 @@ async function initPayment(req, res) {
         };
 
         const initPaymentResult = await sendPostData("wallet/depositRequest", payLoad);
-        return res.status(200).json(initPaymentResult);
+        const response = JSON.parse(initPaymentResult);
+        if (response.status == 100) {
+            return res.status(200).send(initPaymentResult);
+        } else {
+            return res.status(403).send(initPaymentResult);
+        }
     } catch (error) {
         console.error('Error processing payment:', error);
         return res.status(500).json({ error: 'Internal Server Error' });
@@ -66,25 +70,28 @@ async function getClicAccount(wallet_id) {
     const response = await sendPostData("accounts/getclicusername", raw);
     const kson = JSON.parse(response)
     if (kson.status == 100) {
-        console.log("Account validated, public key is ", kson.public_key )
+        console.log("Account validated, public key is ", kson.public_key)
         return kson.public_key;
     } else {
-        console.log("Account validation failed" )
+        console.log("Account validation failed")
         return kson.status;
     }
 }
 
 function generateSignature(requestBody) {
-    const { request_id, wallet_id, amount, currency } = requestBody;
-    const dataToSign = request_id + wallet_id + amount + currency + API_SECRET;
+    const { request_id, paymode, wallet_id, amount, currency } = requestBody;
+    const dataToSign = paymode + request_id + wallet_id + wallet_id + amount + currency + API_SECRET;
 
-    const sha256Hash = crypto.createHash('sha256').update(dataToSign).digest();
-    return sha256Hash.toString('base64');
+    const sha256Hash = crypto.createHash('sha256').update(dataToSign).digest('hex');
+    const signature = Buffer.from(sha256Hash).toString('base64');
+    console.log("sha256Hash", signature)
+    return signature;
+
 }
 
 async function generateSignatureEnvelope(amount, assetCode, destination, request_id) {
     try {
-        console.log("Generating transaction envelope with data ",{amount, assetCode, destination, request_id} )
+        console.log("Generating transaction envelope with data ", { amount, assetCode, destination, request_id })
         const asset = new StellarSdk.Asset(
             assetCode,
             ISSUER_PUBLIC_KEY,
@@ -116,7 +123,7 @@ async function generateSignatureEnvelope(amount, assetCode, destination, request
         transaction.sign(signingKeypair);
 
         const envelopeXDR = transaction.toEnvelope().toXDR('base64');
-        console.log("Transaction envelope generated\n ",envelopeXDR )
+        console.log("Transaction envelope generated\n ", envelopeXDR)
         return envelopeXDR;
     } catch (error) {
         console.error('Error generating signature envelope:', error);
@@ -146,7 +153,7 @@ async function sendPostData(subUrl, data) {
                     console.error('Error getting to CLIC:', error);
                     reject(error);
                 } else {
-                    console.log("Transaction response from clic ",body);
+                    console.log("Transaction response from clic ", body);
                     resolve(body);
                 }
             });
