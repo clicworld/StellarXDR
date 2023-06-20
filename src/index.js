@@ -22,7 +22,7 @@ const server = new StellarSdk.Server('https://horizon.stellar.org');
 app.post('/', initPayment);
 
 async function initPayment(req, res) {
-    const { request_id, wallet_id, amount, currency } = req.body;
+    let { request_id, wallet_id, amount, currency } = req.body;
     console.log("Received transfer request, ", req.body)
 
     try {

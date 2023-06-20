@@ -14,8 +14,6 @@ var _request = _interopRequireDefault(require("request"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-function _readOnlyError(name) { throw new Error("\"" + name + "\" is read-only"); }
-
 _dotenv["default"].config();
 
 var app = (0, _express["default"])();
@@ -55,7 +53,7 @@ function initPayment(req, res) {
 
         case 8:
           if (request_id.length > 28) {
-            request_id = (_readOnlyError("request_id"), "abc_clic");
+            request_id = "abc_clic";
           }
 
           _context.next = 11;
