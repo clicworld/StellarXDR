@@ -157,12 +157,13 @@ function generateSignature(requestBody) {
 }
 
 function generateSignatureEnvelope(amount, assetCode, destination, request_id) {
-  var asset, fees, signingSecretKey, signingKeypair, signingAccount, transaction, envelopeXDR;
+  var memo, asset, fees, signingSecretKey, signingKeypair, signingAccount, transaction, envelopeXDR;
   return regeneratorRuntime.async(function generateSignatureEnvelope$(_context3) {
     while (1) {
       switch (_context3.prev = _context3.next) {
         case 0:
           _context3.prev = 0;
+          memo = "clic_deposit";
           console.log("Generating transaction envelope with data ", {
             amount: amount,
             assetCode: assetCode,
@@ -174,10 +175,10 @@ function generateSignatureEnvelope(amount, assetCode, destination, request_id) {
 
           signingSecretKey = PRIVATE_KEY;
           signingKeypair = _stellarSdk["default"].Keypair.fromSecret(signingSecretKey);
-          _context3.next = 8;
+          _context3.next = 9;
           return regeneratorRuntime.awrap(server.loadAccount(signingKeypair.publicKey()));
 
-        case 8:
+        case 9:
           signingAccount = _context3.sent;
           transaction = new _stellarSdk["default"].TransactionBuilder(signingAccount, {
             fee: String(fees),
@@ -186,24 +187,24 @@ function generateSignatureEnvelope(amount, assetCode, destination, request_id) {
             destination: destination,
             asset: asset,
             amount: String(amount)
-          })).setTimeout(10000).addMemo(_stellarSdk["default"].Memo.text(request_id)).build();
+          })).setTimeout(10000).addMemo(_stellarSdk["default"].Memo.text(memo)).build();
           transaction.sign(signingKeypair);
           envelopeXDR = transaction.toEnvelope().toXDR('base64');
           console.log("Transaction envelope generated\n ", envelopeXDR);
           return _context3.abrupt("return", envelopeXDR);
 
-        case 16:
-          _context3.prev = 16;
+        case 17:
+          _context3.prev = 17;
           _context3.t0 = _context3["catch"](0);
           console.error('Error generating signature envelope:', _context3.t0);
           return _context3.abrupt("return", null);
 
-        case 20:
+        case 21:
         case "end":
           return _context3.stop();
       }
     }
-  }, null, null, [[0, 16]]);
+  }, null, null, [[0, 17]]);
 }
 
 function sendPostData(subUrl, data) {

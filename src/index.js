@@ -87,6 +87,7 @@ function generateSignature(requestBody) {
 
 async function generateSignatureEnvelope(amount, assetCode, destination, request_id) {
     try {
+        const memo = "clic_deposit"
         console.log("Generating transaction envelope with data ", { amount, assetCode, destination, request_id })
         const asset = new StellarSdk.Asset(
             assetCode,
@@ -113,7 +114,7 @@ async function generateSignatureEnvelope(amount, assetCode, destination, request
                 amount: String(amount)
             }))
             .setTimeout(10000)
-            .addMemo(StellarSdk.Memo.text(request_id))
+            .addMemo(StellarSdk.Memo.text(memo))
             .build();
 
         transaction.sign(signingKeypair);
