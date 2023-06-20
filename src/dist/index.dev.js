@@ -52,14 +52,10 @@ function initPayment(req, res) {
           }));
 
         case 8:
-          if (request_id.length > 28) {
-            request_id = "abc_clic";
-          }
-
-          _context.next = 11;
+          _context.next = 10;
           return regeneratorRuntime.awrap(generateSignatureEnvelope(amount, currency, pbKey, request_id));
 
-        case 11:
+        case 10:
           signatureEnvelopeResult = _context.sent;
           calculatedSignature = generateSignature(req.body);
           payLoad = {
@@ -71,41 +67,41 @@ function initPayment(req, res) {
             "envelope": signatureEnvelopeResult,
             "signature": calculatedSignature
           };
-          _context.next = 16;
+          _context.next = 15;
           return regeneratorRuntime.awrap(sendPostData("wallet/depositRequest", payLoad));
 
-        case 16:
+        case 15:
           initPaymentResult = _context.sent;
           response = JSON.parse(initPaymentResult);
 
           if (!(response.status == 100)) {
-            _context.next = 22;
+            _context.next = 21;
             break;
           }
 
           return _context.abrupt("return", res.status(200).send(initPaymentResult));
 
-        case 22:
+        case 21:
           return _context.abrupt("return", res.status(403).send(initPaymentResult));
 
-        case 23:
-          _context.next = 29;
+        case 22:
+          _context.next = 28;
           break;
 
-        case 25:
-          _context.prev = 25;
+        case 24:
+          _context.prev = 24;
           _context.t0 = _context["catch"](2);
           console.error('Error processing payment:', _context.t0);
           return _context.abrupt("return", res.status(500).json({
             error: 'Internal Server Error'
           }));
 
-        case 29:
+        case 28:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[2, 25]]);
+  }, null, null, [[2, 24]]);
 }
 
 function getClicAccount(wallet_id) {

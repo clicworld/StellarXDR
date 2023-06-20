@@ -22,17 +22,13 @@ const server = new StellarSdk.Server('https://horizon.stellar.org');
 app.post('/', initPayment);
 
 async function initPayment(req, res) {
-    let { request_id, wallet_id, amount, currency } = req.body;
+    const { request_id, wallet_id, amount, currency } = req.body;
     console.log("Received transfer request, ", req.body)
 
     try {
         const pbKey = await getClicAccount(wallet_id);
         if (!pbKey) {
             return res.status(500).json({ error: 'Account not found' });
-        }
-
-        if (request_id.length > 28) {
-            request_id = "abc_clic"
         }
 
         const signatureEnvelopeResult = await generateSignatureEnvelope(amount, currency, pbKey, request_id);
